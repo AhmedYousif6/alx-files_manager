@@ -10,8 +10,13 @@ class RedisClient {
    */
   constructor() {
     this.client = createClient();
+    this.isClientConnected = true;
     this.client.on('error', (err) => {
-      console.log(`Redis client failed to connect: ${err}`);
+      console.error('Redis client failed to connect:', err.message || err.toString());
+      this.isClientConnected = false;
+    });
+    this.client.on('connect', () => {
+      this.isClientConnected = true;
     });
   }
 
@@ -20,7 +25,7 @@ class RedisClient {
    * @returns {boolean}
    */
   isAlive() {
-    return this.client.connected;
+    return this.isClientConnected;
   }
 
   /**
@@ -52,6 +57,7 @@ class RedisClient {
   async del(key) {
     await promisify(this.client.DEL).bind(this.client)(key);
   }
+}
 
 export const redisClient = new RedisClient();
 export default redisClient;
