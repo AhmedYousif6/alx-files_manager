@@ -2,14 +2,9 @@
 
 const { MongoClient } = require('mongodb');
 const mongo = require('mongodb');
+const { pwdHashed } = require('./utils');
 
-/**
- * Represents mongoClient database.
- */
 class DBClient {
-  /** 
-   * Creates MongoClient instance.
-   */
   constructor() {
     const host = (process.env.DB_HOST) ? process.env.DB_HOST : 'localhost';
     const port = (process.env.DB_PORT) ? process.env.DB_PORT : 27017;
@@ -22,34 +17,56 @@ class DBClient {
     }).catch((err) => console.log(err.message));
   }
 
-  /**
-   * Checks if the client's connection to the mongo is active.
-   * @returns {boolean}
-   */
   isAlive() {
     return this.connected;
   }
 
-  /**
-   * Retrieves the number of users.
-   * @returns {Promise<Number>}
-   */
   async nbUsers() {
     await this.client.connect();
     const users = await this.client.db(this.database).collection('users').countDocuments();
     return users;
   }
 
-  /**
-   * Retrieves the number of files in the mongo db.
-   * @returns {Promise<Number>}
-   */
   async nbFiles() {
     await this.client.connect();
     const users = await this.client.db(this.database).collection('files').countDocuments();
     return users;
   }
+
+  async createUser(email, password) {
+    const hashedPwd = pwdHashed(password);
+    await this.client.connect();
+    const user = await this.client.db(this.database).collection('users').insertOne({ email, password: hashedPwd });
+    return user;
+  }
+
+  async getUser(email) {
+    await this.client.connect();
+    const user = await this.client.db(this.database).collection('users').find({ email }).toArray();
+    if (!user.length) {
+      return null;
+    }
+    return user[0];
+  }
+
+  async getUserById(id) {
+    const _id = new mongo.ObjectID(id);
+    await this.client.connect();
+    const user = await this.client.db(this.database).collection('users').find({ _id }).toArray();
+    if (!user.length) {
+      return null;
+    }
+    return user[0];
+  }
+
+  async userExist(email) {
+    const user = await this.getUser(email);
+    if (user) {
+      return true;
+    }
+    return false;
+  }
 }
 
 const dbClient = new DBClient();
-export default dbClient;
+module.exports = dbClient;
