@@ -1,4 +1,6 @@
 import { MongoClient } from 'mongodb';
+const mongo = require('mongodb');
+const { pwdHashed } = require('./utils');
 
 /**
  * Represents a MongoDB client.
@@ -45,6 +47,40 @@ class DBClient {
     await this.client.connect();
     const users = await this.client.db(this.database).collection('files').countDocuments();
     return users;
+  }
+
+  async createUser(email, password) {
+    const hashedPwd = pwdHashed(password);
+    await this.client.connect();
+    const user = await this.client.db(this.database).collection('users').insertOne({ email, password: hashedPwd });
+    return user;
+  }
+
+  async getUser(email) {
+    await this.client.connect();
+    const user = await this.client.db(this.database).collection('users').find({ email }).toArray();
+    if (!user.length) {
+      return null;
+    }
+    return user[0];
+  }
+
+  async getUserById(id) {
+    const _id = new mongo.ObjectID(id);
+    await this.client.connect();
+    const user = await this.client.db(this.database).collection('users').find({ _id }).toArray();
+    if (!user.length) {
+      return null;
+    }
+    return user[0];
+  }
+
+  async userExist(email) {
+    const user = await this.getUser(email);
+    if (user) {
+      return true;
+    }
+    return false;
   }
 }
 
