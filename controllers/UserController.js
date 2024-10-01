@@ -1,6 +1,4 @@
-kk#!/usr/bin/node
-
-const dbClient = require('../utils/db');
+import dbClient from '../utils/db';
 
 class UsersController {
   static async postNew(req, res) {
@@ -28,4 +26,4 @@ class UsersController {
   }
 }
 
-module.exports = UsersController;
+export default UsersController;
