@@ -1,5 +1,4 @@
 import { MongoClient } from 'mongodb';
-const mongo = require('mongodb');
 const { pwdHashed } = require('./utils');
 
 /**
