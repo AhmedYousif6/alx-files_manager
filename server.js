@@ -1,7 +1,5 @@
-#!/usr/bin/node
-
-const express = require('express');
-const router = require('./routes/index');
+import express from'express';
+import router from './routes/index';
 
 const server = express();
 const PORT = process.env.PORT ? process.env.PORT : 5000;
