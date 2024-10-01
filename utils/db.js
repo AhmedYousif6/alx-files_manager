@@ -1,5 +1,4 @@
 import { MongoClient } from 'mongodb';
-import { pwdHashed } from './utils';
 
 /**
  * Represents a MongoDB client.
