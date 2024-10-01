@@ -1,6 +1,6 @@
-const { MongoClient } = require('mongodb');
-const mongo = require('mongodb');
-const { pwdHashed } = require('./utils');
+import { MongoClient } from 'mongodb';
+import mongo from 'mongodb';
+import { pwdHashed } from './utils';
 
 class DBClient {
   constructor() {
