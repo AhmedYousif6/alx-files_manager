@@ -1,4 +1,5 @@
 import { MongoClient } from 'mongodb';
+import mongo from 'mongodb';
 const { pwdHashed } = require('./utils');
 
 /**
@@ -48,6 +49,12 @@ class DBClient {
     return users;
   }
 
+  /**
+   * Creates new user.
+   * @param {String} email email of the user.
+   * @param {String} password the password of the user.
+   * @returns {Promise<String>}
+   */
   async createUser(email, password) {
     const hashedPwd = pwdHashed(password);
     await this.client.connect();
@@ -55,6 +62,11 @@ class DBClient {
     return user;
   }
 
+  /**
+   * Get user from db.
+   * @param {String} email email of the user to retrieve.
+   * @returns {String}
+   */
   async getUser(email) {
     await this.client.connect();
     const user = await this.client.db(this.database).collection('users').find({ email }).toArray();
@@ -64,6 +76,11 @@ class DBClient {
     return user[0];
   }
 
+  /**
+   * Get user by its id.
+   * @param {Number} id the id of the user.
+   * @returns {String}
+   */
   async getUserById(id) {
     const _id = new mongo.ObjectID(id);
     await this.client.connect();
@@ -74,6 +91,11 @@ class DBClient {
     return user[0];
   }
 
+  /**
+   * Checks if the user exist.
+   * @param {String} email email of the user.
+   * @returns {boolean}
+   */
   async userExist(email) {
     const user = await this.getUser(email);
     if (user) {
