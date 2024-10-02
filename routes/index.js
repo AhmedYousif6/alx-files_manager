@@ -1,6 +1,6 @@
 import express from 'express';
 import AppController from '../controllers/AppController';
-import UserController from '../controllers/UsersController';
+import UsersController from '../controllers/UsersController';
 import AuthController from '../controller/AuthController';
 
 const router = express.Router();
@@ -10,6 +10,6 @@ router.get('/stats', AppController.getStats);
 router.post('/users', UsersController.postNew);
 router.get('/connect', AuthController.getConnect);
 router.get('/disconnect', AuthController.getDisconnect);
-router.get('/users/me', AuthController.getMe);
+router.get('/users/me', UsersController.getMe);
 
 export default router;
