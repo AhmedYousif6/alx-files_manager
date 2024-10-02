@@ -1,6 +1,7 @@
-import { MongoClient } from 'mongodb';
-import mongo from 'mongodb';
-const { pwdHashed } = require('./utils');
+import mongodb from 'mongodb';
+// eslint-disable-next-line no-unused-vars
+import Collection from 'mongodb/lib/collection';
+import envLoader from './env_loader';
 
 /**
  * Represents a MongoDB client.
@@ -10,15 +11,14 @@ class DBClient {
    * Creates a new DBClient instance.
    */
   constructor() {
-    const host = (process.env.DB_HOST) ? process.env.DB_HOST : 'localhost';
-    const port = (process.env.DB_PORT) ? process.env.DB_PORT : 27017;
-    this.database = (process.env.DB_DATABASE) ? process.env.DB_DATABASE : 'files_manager';
-    const dbUrl = `mongodb://${host}:${port}`;
-    this.connected = false;
-    this.client = new MongoClient(dbUrl, { useUnifiedTopology: true });
-    this.client.connect().then(() => {
-      this.connected = true;
-    }).catch((err) => console.log(err.message));
+    envLoader();
+    const host = process.env.DB_HOST || 'localhost';
+    const port = process.env.DB_PORT || 27017;
+    const database = process.env.DB_DATABASE || 'files_manager';
+    const dbURL = `mongodb://${host}:${port}/${database}`;
+
+    this.client = new mongodb.MongoClient(dbURL, { useUnifiedTopology: true });
+    this.client.connect();
   }
 
   /**
@@ -26,7 +26,7 @@ class DBClient {
    * @returns {boolean}
    */
   isAlive() {
-    return this.connected;
+    return this.client.isConnected();
   }
 
   /**
@@ -34,9 +34,7 @@ class DBClient {
    * @returns {Promise<Number>}
    */
   async nbUsers() {
-    await this.client.connect();
-    const users = await this.client.db(this.database).collection('users').countDocuments();
-    return users;
+    return this.client.db().collection('users').countDocuments();
   }
 
   /**
@@ -44,64 +42,23 @@ class DBClient {
    * @returns {Promise<Number>}
    */
   async nbFiles() {
-    await this.client.connect();
-    const users = await this.client.db(this.database).collection('files').countDocuments();
-    return users;
+    return this.client.db().collection('files').countDocuments();
   }
 
   /**
-   * Creates new user.
-   * @param {String} email email of the user.
-   * @param {String} password the password of the user.
-   * @returns {Promise<String>}
+   * Retrieves a reference to the `users` collection.
+   * @returns {Promise<Collection>}
    */
-  async createUser(email, password) {
-    const hashedPwd = pwdHashed(password);
-    await this.client.connect();
-    const user = await this.client.db(this.database).collection('users').insertOne({ email, password: hashedPwd });
-    return user;
+  async usersCollection() {
+    return this.client.db().collection('users');
   }
 
   /**
-   * Get user from db.
-   * @param {String} email email of the user to retrieve.
-   * @returns {String}
+   * Retrieves a reference to the `files` collection.
+   * @returns {Promise<Collection>}
    */
-  async getUser(email) {
-    await this.client.connect();
-    const user = await this.client.db(this.database).collection('users').find({ email }).toArray();
-    if (!user.length) {
-      return null;
-    }
-    return user[0];
-  }
-
-  /**
-   * Get user by its id.
-   * @param {Number} id the id of the user.
-   * @returns {String}
-   */
-  async getUserById(id) {
-    const _id = new mongo.ObjectID(id);
-    await this.client.connect();
-    const user = await this.client.db(this.database).collection('users').find({ _id }).toArray();
-    if (!user.length) {
-      return null;
-    }
-    return user[0];
-  }
-
-  /**
-   * Checks if the user exist.
-   * @param {String} email email of the user.
-   * @returns {boolean}
-   */
-  async userExist(email) {
-    const user = await this.getUser(email);
-    if (user) {
-      return true;
-    }
-    return false;
+  async filesCollection() {
+    return this.client.db().collection('files');
   }
 }
 
